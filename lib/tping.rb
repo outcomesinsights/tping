@@ -13,7 +13,6 @@ module Tping
     command += headers
     command += ["-d", '{ "request": { "branch": "master" }}']
     command <<  "https://api.travis-ci.#{pro ? "com" : "org"}/repo/#{user}%2F#{repo}/requests"
-    p command
     system(*command)
   end
 end
