@@ -1,5 +1,56 @@
 #!/usr/bin/env ruby
 
+require "optparse"
 require_relative "../lib/tping"
 
-Tping.request_build(*ARGV)
+options = {}
+
+optparse = OptionParser.new do |opts|
+  options[:token] = nil
+  opts.on("-t", "--token TOKEN", "Your Travis API token") do |token|
+    options[:token] = token
+  end
+
+  options[:user] = nil
+  opts.on("-u", "--user USER", "The GitHub user/organization that owns the repo to trigger", "(e.g. aguynamedryan)") do |user|
+    options[:user] = user
+  end
+
+  options[:repo] = nil
+  opts.on("-r", "--repo REPO", "The name of repo to trigger", "(e.g. tping)") do |repo|
+    options[:repo] = repo
+  end
+
+  options[:pro] = false
+  opts.on("-p", "--pro", "Ping Travis 'professional'") do |pro|
+    options[:pro] = true
+  end
+
+  opts.on("-b", "--branch [BRANCH]", "The branch to trigger",  "(defaults to 'master')") do |branch|
+    options[:branch] = branch
+  end
+
+  opts.on("-h", "--help", "Display this screen") do
+    puts opts
+    exit
+  end
+end
+
+optparse.parse!
+
+options[:branch] ||= "master"
+
+# OptionParser claims to check if required options are provided, but it didn't
+# seem to work for me.  Instead of debugging, I hacked this little ditty
+# to check for required options for me.
+missing_opts = options.keys.select { |k| options[k].nil? }.map { |k| "--#{k}" }
+
+unless missing_opts.empty?
+  puts "Please specify the following options:"
+  puts missing_opts.join("\n")
+  puts
+  puts optparse
+  exit 1
+end
+
+Tping.request_build(options)

@@ -1,18 +1,19 @@
 require_relative "tping/version"
 
 module Tping
-  def self.request_build(token, user, repo, pro = false)
+  def self.request_build(opts)
     headers = ["Content-Type: application/json",
                "Accept: application/json",
                "Travis-API-Version: 3",
-               "Authorization: token #{token}"].flat_map do |header|
+               "Authorization: token #{opts[:token]}"].flat_map do |header|
       ["-H", header]
     end
 
-    command = %w(curl -s -X POST)
+    command = %w(curl -v -s -X POST)
     command += headers
-    command += ["-d", '{ "request": { "branch": "master" }}']
-    command <<  "https://api.travis-ci.#{pro ? "com" : "org"}/repo/#{user}%2F#{repo}/requests"
+    command += ["-d", %Q|{ "request": { "branch": "#{opts[:branch]}" }}|]
+    command <<  "https://api.travis-ci.#{opts[:pro] ? "com" : "org"}/repo/#{opts[:user]}%2F#{opts[:repo]}/requests"
+    p command
     system(*command)
   end
 end
